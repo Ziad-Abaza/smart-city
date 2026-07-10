@@ -1,0 +1,150 @@
+{
+	"asset": {
+		"generator": "SOLIDWORKSGLTF",
+		"version" : "2.0"
+	},
+"extensionsUsed": [ "KHR_lights_punctual", "Solidworks_custom_properties", "KHR_draco_mesh_compression"],
+"extensionsRequired": [ "KHR_draco_mesh_compression" ],
+	"scene" : 0,
+	"scenes": [
+		{
+			"name": "Default - <Default>_Display State 1",
+			"nodes": [
+				0, 1]
+		}
+	],
+	"nodes": [
+		{
+			"matrix": [
+				0.748443,					0.0975979,					-0.655979,					0,
+				-0.399652,					0.855719,					-0.32867,					0,
+				0.529256,					0.508154,					0.679462,					0,
+				2.86778,					3.15597,					4.20895,					1
+			]
+			,"camera": 0
+			,"name": "current"		}
+,
+		{
+			"mesh": 0
+			,"name": "Part1"		}
+	],
+	"cameras": [
+		{
+			"type": "orthographic",
+			"orthographic" : {
+				"xmag": 1,
+				"ymag" : 1,
+				"zfar" : 100,
+				"znear" : 0.01
+			}
+		}
+	],
+	"meshes" : [
+		{
+			"primitives" : [
+				{
+					"attributes" : {
+					"POSITION" : 1,
+					"NORMAL" : 2,
+					"TEXCOORD_0" : 3
+					},
+					"indices" : 0,
+					"mode": 4,
+					"material" : 1
+					,"extensions": {
+					"KHR_draco_mesh_compression": {
+					"bufferView": 0,
+					"attributes" : {
+					"POSITION": 0,
+					"NORMAL" : 1,
+					"TEXCOORD_0" : 2
+					}
+					}
+					}
+				}
+			]
+		}
+	],
+	"accessors" : [
+			{
+				"componentType" : 5123
+				,"count" : 28758
+				,"type" : "SCALAR"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 11597
+				,"type" : "VEC3"
+				,"min" : [-3.03000003e-01, 0.00000000e+00, -2.28000000e-01]
+				,"max" : [3.03000003e-01, 3.70999992e-01, 2.64999986e-01]
+			},
+			{
+				"componentType" : 5126
+				,"count" : 11597
+				,"type" : "VEC3"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 11597
+				,"type" : "VEC2"
+			}
+	],
+	"materials": [
+			{
+				"pbrMetallicRoughness": {
+					"baseColorFactor": [
+						0.498039, 0.498039, 0.498039, 1
+					]
+					,"metallicFactor": 0
+					,"roughnessFactor": 1
+				}
+			},
+			{
+				"name": "polished beech 2d"
+				,"pbrMetallicRoughness": {
+					"baseColorTexture": {
+						"index": 0
+					}
+					,"baseColorFactor": [
+						1, 1, 1, 1
+					]
+					,"metallicFactor": 0
+					,"roughnessFactor": 0.19
+				}
+			}
+	],
+	"textures": [
+			{
+				"sampler": 0,
+				"source": 0,
+				"name": "polished beech.jpg"
+			}
+	],
+	"images": [
+			{
+				"uri": "polished beech.jpg"
+			}
+	],
+	"samplers": [
+			{
+				"magFilter": 9729,
+				"minFilter" : 9729,
+				"wrapS" : 10497,
+				"wrapT" : 10497,
+				"name": "DefaultSampler"
+			}
+	],
+	"bufferViews" : [
+			{
+				"buffer": 0
+				,"byteOffset" : 0
+				,"byteLength" : 28140
+			}
+	],
+	"buffers" : [
+			{
+				"byteLength": 28140
+				,"uri" : "data.bin"
+			}
+	]
+}

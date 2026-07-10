@@ -1,0 +1,265 @@
+{
+	"asset": {
+		"generator": "SOLIDWORKSGLTF",
+		"version" : "2.0"
+	},
+"extensionsUsed": [ "KHR_lights_punctual", "Solidworks_custom_properties", "KHR_draco_mesh_compression"],
+"extensionsRequired": [ "KHR_draco_mesh_compression" ],
+	"scene" : 0,
+	"scenes": [
+		{
+			"name": "Default - <Default>_Display State 1",
+			"nodes": [
+				0, 1]
+		}
+	],
+	"nodes": [
+		{
+			"matrix": [
+				0.566333,					0.034583,					0.823451,					0,
+				0.276113,					0.933421,					-0.2291,					0,
+				-0.776549,					0.357113,					0.519078,					0,
+				-5.49147,					2.4865,					3.63214,					1
+			]
+			,"camera": 0
+			,"name": "current"		}
+,
+		{
+			"mesh": 0
+			,"name": "the final"		}
+	],
+	"cameras": [
+		{
+			"type": "orthographic",
+			"orthographic" : {
+				"xmag": 1,
+				"ymag" : 1,
+				"zfar" : 100,
+				"znear" : 0.01
+			}
+		}
+	],
+	"meshes" : [
+		{
+			"primitives" : [
+				{
+					"attributes" : {
+					"POSITION" : 1,
+					"NORMAL" : 2,
+					"TEXCOORD_0" : 3
+					},
+					"indices" : 0,
+					"mode": 4,
+					"material" : 1
+					,"extensions": {
+					"KHR_draco_mesh_compression": {
+					"bufferView": 0,
+					"attributes" : {
+					"POSITION": 0,
+					"NORMAL" : 1,
+					"TEXCOORD_0" : 2
+					}
+					}
+					}
+				},
+				{
+					"attributes" : {
+					"POSITION" : 5,
+					"NORMAL" : 6,
+					"TEXCOORD_0" : 7
+					},
+					"indices" : 4,
+					"mode": 4,
+					"material" : 2
+					,"extensions": {
+					"KHR_draco_mesh_compression": {
+					"bufferView": 1,
+					"attributes" : {
+					"POSITION": 0,
+					"NORMAL" : 1,
+					"TEXCOORD_0" : 2
+					}
+					}
+					}
+				},
+				{
+					"attributes" : {
+					"POSITION" : 9,
+					"NORMAL" : 10,
+					"TEXCOORD_0" : 11
+					},
+					"indices" : 8,
+					"mode": 4,
+					"material" : 3
+					,"extensions": {
+					"KHR_draco_mesh_compression": {
+					"bufferView": 2,
+					"attributes" : {
+					"POSITION": 0,
+					"NORMAL" : 1,
+					"TEXCOORD_0" : 2
+					}
+					}
+					}
+				}
+			]
+		}
+	],
+	"accessors" : [
+			{
+				"componentType" : 5123
+				,"count" : 9522
+				,"type" : "SCALAR"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 4272
+				,"type" : "VEC3"
+				,"min" : [-3.75000000e-01, -2.70000007e-03, -4.00000006e-01]
+				,"max" : [3.75000000e-01, 3.55399996e-01, 4.00000006e-01]
+			},
+			{
+				"componentType" : 5126
+				,"count" : 4272
+				,"type" : "VEC3"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 4272
+				,"type" : "VEC2"
+			},
+			{
+				"componentType" : 5123
+				,"count" : 18
+				,"type" : "SCALAR"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 12
+				,"type" : "VEC3"
+				,"min" : [-2.70000666e-01, 1.65406898e-01, 3.47299993e-01]
+				,"max" : [1.17549435e-38, 1.68106899e-01, 3.49999994e-01]
+			},
+			{
+				"componentType" : 5126
+				,"count" : 12
+				,"type" : "VEC3"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 12
+				,"type" : "VEC2"
+			},
+			{
+				"componentType" : 5123
+				,"count" : 960
+				,"type" : "SCALAR"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 336
+				,"type" : "VEC3"
+				,"min" : [-2.77700007e-01, -2.70000007e-03, -3.52699995e-01]
+				,"max" : [2.52700001e-01, 3.55399996e-01, 3.52699995e-01]
+			},
+			{
+				"componentType" : 5126
+				,"count" : 336
+				,"type" : "VEC3"
+			},
+			{
+				"componentType" : 5126
+				,"count" : 336
+				,"type" : "VEC2"
+			}
+	],
+	"materials": [
+			{
+				"pbrMetallicRoughness": {
+					"baseColorFactor": [
+						0.498039, 0.498039, 0.498039, 1
+					]
+					,"metallicFactor": 0
+					,"roughnessFactor": 1
+				}
+			},
+			{
+				"name": "polished oak 2d"
+				,"pbrMetallicRoughness": {
+					"baseColorTexture": {
+						"index": 0
+					}
+					,"baseColorFactor": [
+						1, 1, 1, 1
+					]
+					,"metallicFactor": 0
+					,"roughnessFactor": 0.19
+				}
+			},
+			{
+				"name": "color"
+				,"pbrMetallicRoughness": {
+					"baseColorFactor": [
+						0.792157, 0.819608, 0.933333, 0.321307
+					]
+					,"metallicFactor": 0
+					,"roughnessFactor": 0.17
+				}
+				,"alphaMode": "BLEND"
+			},
+			{
+				"name": "color-1"
+				,"pbrMetallicRoughness": {
+					"baseColorFactor": [
+						0.25098, 0.25098, 0.25098, 1
+					]
+					,"metallicFactor": 0
+					,"roughnessFactor": 0.17
+				}
+			}
+	],
+	"textures": [
+			{
+				"sampler": 0,
+				"source": 0,
+				"name": "polished oak.jpg"
+			}
+	],
+	"images": [
+			{
+				"uri": "polished oak.jpg"
+			}
+	],
+	"samplers": [
+			{
+				"magFilter": 9729,
+				"minFilter" : 9729,
+				"wrapS" : 10497,
+				"wrapT" : 10497,
+				"name": "DefaultSampler"
+			}
+	],
+	"bufferViews" : [
+			{
+				"buffer": 0
+				,"byteOffset" : 0
+				,"byteLength" : 11640
+			},
+			{
+				"buffer": 0
+				,"byteOffset" : 11640
+				,"byteLength" : 228
+			},
+			{
+				"buffer": 0
+				,"byteOffset" : 11868
+				,"byteLength" : 1740
+			}
+	],
+	"buffers" : [
+			{
+				"byteLength": 13608
+				,"uri" : "data.bin"
+			}
+	]
+}

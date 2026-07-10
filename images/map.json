@@ -1,0 +1,184 @@
+[
+  {
+    "path": "charge-area.png",
+    "name": "charge-area",
+    "title": "Electric Vehicle Charging Station",
+    "site_address": "/modules/ev-charging",
+    "role": "Interface for monitoring and managing EV charging infrastructure."
+  },
+  {
+    "path": "charge(1).jpg",
+    "name": "charge-station-view",
+    "title": "Charging Station Details",
+    "site_address": "/modules/ev-charging",
+    "role": "Detailed view of EV charging station hardware and connectivity."
+  },
+  {
+    "path": "charge(2).jpg",
+    "name": "charge-station-view",
+    "title": "Charging Station Details",
+    "site_address": "/modules/ev-charging",
+    "role": "Detailed view of EV charging station hardware and connectivity."
+  },
+  {
+    "path": "charge(3).jpg",
+    "name": "charge-usage-stats",
+    "title": "Charging Usage Statistics",
+    "site_address": "/modules/ev-charging",
+    "role": "Dashboard showing real-time usage analytics of charging stations."
+  },
+  {
+    "path": "charge(4).jpg",
+    "name": "charge-billing-interface",
+    "title": "Billing System",
+    "site_address": "/modules/ev-charging",
+    "role": "Payment and invoicing interface for charging services."
+  },
+  {
+    "path": "charge(5).jpg",
+    "name": "charge-maintenance-alerts",
+    "title": "Maintenance Alerts",
+    "site_address": "/modules/ev-charging",
+    "role": "System status and maintenance alert monitoring interface."
+  },
+  {
+    "path": "chatbot(1).png",
+    "name": "chatbot",
+    "title": "Smart City AI Assistant",
+    "site_address": "/modules/chatbot",
+    "role": "Interactive interface for the city's AI-powered service assistant."
+  },
+  {
+    "path": "chatbot(2).png",
+    "name": "chatbot-user-dialog",
+    "title": "Chatbot Conversation Flow",
+    "site_address": "/modules/chatbot",
+    "role": "Visual representation of user-bot interaction dialog."
+  },
+  {
+    "path": "chatbot(3).png",
+    "name": "chatbot-settings",
+    "title": "Chatbot Configuration",
+    "site_address": "/modules/chatbot",
+    "role": "Administrative settings and configuration panel for the bot."
+  },
+  {
+    "path": "face-reg.png",
+    "name": "facial-recognition",
+    "title": "Biometric Security System",
+    "site_address": "/modules/facial-recognition",
+    "role": "System for real-time face detection and secure access control."
+  },
+  {
+    "path": "indoor-localization.png",
+    "name": "indoor-localization",
+    "title": "Indoor Positioning System",
+    "site_address": "/modules/indoor-localization",
+    "role": "Technical visualization for indoor navigation and tracking."
+  },
+  {
+    "path": "parking.jpg",
+    "name": "parking",
+    "title": "Smart Parking Management",
+    "site_address": "/modules/parking",
+    "role": "Real-time visual map for tracking parking space occupancy."
+  },
+  {
+    "path": "simulator.jpg",
+    "name": "simulator",
+    "title": "Virtual Simulation and Digital Twin Environment",
+    "site_address": "/modules/autonomous-driving-simulator",
+    "role": "comprehensive virtual simulation environment was engineered as a 'digital twin' of the city."
+  },
+  {
+    "path": "smart-city-poster.jpg",
+    "name": "smart-city-poster",
+    "title": "Project Overview Poster",
+    "site_address": "/",
+    "role": "Comprehensive promotional poster for the Smart City project."
+  },
+  {
+    "path": "voice-assistant(2).jpeg",
+    "name": "voice-assistant-config",
+    "title": "Voice Assistant when THINKING",
+    "site_address": "/modules/voice-assistant",
+    "role": "Voice assistant interface showing processing state during user interaction."
+  },
+  {
+    "path": "voice-assistant(1).jpeg",
+    "name": "voice-assistant",
+    "title": "Voice Assistant when LISTENING",
+    "site_address": "/modules/voice-assistant",
+    "role": "Voice assistant interface showing active listening state."
+  },
+  {
+    "path": "home.jpg",
+    "name": "smart-home-dashboard",
+    "title": "Smart Home Hub",
+    "site_address": "/modules/home",
+    "role": "Central dashboard for managing smart home IoT devices."
+  },
+  {
+    "path": "home.png",
+    "name": "smart-home-dashboard",
+    "title": "Smart Home Hub",
+    "site_address": "/modules/home",
+    "role": "Central dashboard for managing smart home IoT devices."
+  },
+  {
+    "path": "smart-car.png",
+    "name": "smart-car",
+    "title": "Smart Car",
+    "site_address": "/modules/smart-car",
+    "role": "smart car image"
+  },
+  {
+    "path": "dr.osama(1).jpg",
+    "name": "Prof. Dr . Osama El-Nahhas",
+    "title": "Prof. Dr . Osama El-Nahhas",
+    "site_address": "/modules/dr.osama",
+    "role": "Prof. Dr . Osama El-Nahhas image"
+  },
+  {
+    "path": "dr.osama(2).jpg",
+    "name": "Prof. Dr . Osama El-Nahhas",
+    "title": "Prof. Dr . Osama El-Nahhas",
+    "site_address": "/modules/dr.osama",
+    "role": "Prof. Dr . Osama El-Nahhas image"
+  },
+  {
+    "path": "dr.osama(3).jpg",
+    "name": "Prof. Dr . Osama El-Nahhas",
+    "title": "Prof. Dr . Osama El-Nahhas",
+    "site_address": "/modules/dr.osama",
+    "role": "Prof. Dr . Osama El-Nahhas image"
+  },
+  {
+    "path": "eng.fayoumi(1).png",
+    "name": "Eng. Mohamed El-Fayoumi",
+    "title": "Eng. Mohamed El-Fayoumi",
+    "site_address": "/modules/dr.mohamed",
+    "role": "Eng. Mohamed El-Fayoumi image"
+  },
+  {
+    "path": "eng.fayoumi(2).png",
+    "name": "Eng. Mohamed El-Fayoumi",
+    "title": "Eng. Mohamed El-Fayoumi",
+    "site_address": "/modules/dr.mohamed",
+    "role": "Eng. Mohamed El-Fayoumi image"
+  },
+  {
+    "path": "eng.fayoumi(1).jpg",
+    "name": "Eng. Mohamed El-Fayoumi",
+    "title": "Eng. Mohamed El-Fayoumi",
+    "site_address": "/modules/dr.mohamed",
+    "role": "Eng. Mohamed El-Fayoumi image"
+  },
+  {
+    "path": "dr.El-Gohary.jpg",
+    "name": "Dr. Mohamed El-Gohary",
+    "title": "Dr. Mohamed El-Gohary",
+    "site_address": "/modules/dr.mohamed",
+    "role": "Dr. Mohamed El-Gohary image"
+  }
+]

@@ -1,0 +1,1324 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+app.py
+ble.py
+deep.py
+esp/esp.ino
+esp/fixed/fixed.ino
+esp/mobile/mobile.ino
+esp/testing/testing.ino
+localization_plot.png
+map.py
+server.py
+templates/index.html
+templates/map.html
+test.py
+training_data.csv
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".gitignore">
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+</file>
+
+<file path="app.py">
+from flask import Flask, request, jsonify
+import json
+import csv
+import os
+from collections import defaultdict
+from scipy.spatial.distance import euclidean
+
+app = Flask(__name__)
+DATA_FILE = 'training_data.csv'
+
+def load_training_data():
+    data = []
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                data.append({
+                    'location': row['location'],
+                    'scan': json.loads(row['scan_data'])
+                })
+    return data
+
+def get_all_bssids(data):
+    bssids = set()
+    for entry in data:
+        bssids.update(entry['scan'].keys())
+    return sorted(bssids)
+
+def create_feature_vector(scan, all_bssids, default_rssi=-100):
+    return [scan.get(bssid, default_rssi) for bssid in all_bssids]
+
+@app.route('/train', methods=['POST'])
+def train():
+    data = request.json
+    location = data['location']
+    scan_data = data['scan_data']
+    
+    # Filter out non-ESP32 networks (optional)
+    esp32_networks = {bssid: rssi for bssid, rssi in scan_data.items() if bssid.startswith("tower_")}
+    
+    file_exists = os.path.exists(DATA_FILE)
+    with open(DATA_FILE, 'a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(['location', 'scan_data'])
+        writer.writerow([location, json.dumps(esp32_networks)])
+    
+    return jsonify({'status': 'success'})
+
+@app.route('/locate', methods=['POST'])
+def locate():
+    current_scan = request.json
+    training_data = load_training_data()
+    
+    if not training_data:
+        return jsonify({'error': 'No training data available'}), 400
+    
+    all_bssids = get_all_bssids(training_data)
+    
+    # Filter current scan to include only ESP32 networks
+    esp32_scan = {bssid: rssi for bssid, rssi in current_scan.items() if bssid.startswith("tower_")}
+    
+    current_vector = create_feature_vector(esp32_scan, all_bssids)
+    
+    distances = []
+    for entry in training_data:
+        train_vector = create_feature_vector(entry['scan'], all_bssids)
+        dist = euclidean(current_vector, train_vector)
+        distances.append((dist, entry['location']))
+    
+    # Find k-nearest neighbors (k=3)
+    k = 3
+    distances.sort()
+    neighbors = distances[:k]
+    
+    # Majority vote
+    votes = defaultdict(int)
+    for d, loc in neighbors:
+        votes[loc] += 1
+    
+    predicted_location = max(votes, key=votes.get)
+    return jsonify({'location': predicted_location})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+</file>
+
+<file path="ble.py">
+from flask import Flask, request, jsonify, render_template
+
+app = Flask(__name__)
+
+# Dictionary to store fixed node positions (using node id as key)
+fixed_nodes = {}
+
+# Dictionary to store the latest mobile node position
+mobile_node = {"x": None, "y": None}
+
+@app.route('/fixed', methods=['POST'])
+def update_fixed():
+    data = request.get_json()
+    if not data:
+        return "No data provided", 400
+    node_id = data.get("id")
+    x = data.get("x")
+    y = data.get("y")
+    if node_id is None or x is None or y is None:
+        return "Missing data", 400
+    fixed_nodes[node_id] = {"x": x, "y": y}
+    return jsonify({"status": "Fixed node updated", "node": node_id})
+
+@app.route('/mobile', methods=['POST'])
+def update_mobile():
+    data = request.get_json()
+    if not data:
+        return "No data provided", 400
+    x = data.get("x")
+    y = data.get("y")
+    if x is None or y is None:
+        return "Missing data", 400
+    mobile_node["x"] = x
+    mobile_node["y"] = y
+    return jsonify({"status": "Mobile node updated"})
+
+# This endpoint returns the latest positions as JSON.
+@app.route('/data', methods=['GET'])
+def data():
+    return jsonify({
+        "fixed_nodes": fixed_nodes,
+        "mobile_node": mobile_node
+    })
+
+# The main page that shows the visualization.
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    # Run on all interfaces (0.0.0.0) at port 5000.
+    app.run(host='0.0.0.0', port=5000, debug=True)
+</file>
+
+<file path="deep.py">
+from flask import Flask, request, jsonify
+import json
+import csv
+import os
+from collections import defaultdict
+from scipy.spatial.distance import euclidean
+
+app = Flask(__name__)
+DATA_FILE = 'training_data.csv'
+
+def load_training_data():
+    data = []
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                data.append({
+                    'location': row['location'],
+                    'scan': json.loads(row['scan_data'])
+                })
+    return data
+
+def get_all_bssids(data):
+    bssids = set()
+    for entry in data:
+        bssids.update(entry['scan'].keys())
+    return sorted(bssids)
+
+def create_feature_vector(scan, all_bssids, default_rssi=-100):
+    return [scan.get(bssid, default_rssi) for bssid in all_bssids]
+
+@app.route('/train', methods=['POST'])
+def train():
+    data = request.json
+    location = data['location']
+    scan_data = data['scan_data']
+    
+    file_exists = os.path.exists(DATA_FILE)
+    with open(DATA_FILE, 'a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(['location', 'scan_data'])
+        writer.writerow([location, json.dumps(scan_data)])
+    
+    return jsonify({'status': 'success'})
+
+@app.route('/locate', methods=['POST'])
+def locate():
+    current_scan = request.json
+    training_data = load_training_data()
+    
+    if not training_data:
+        return jsonify({'error': 'No training data available'}), 400
+    
+    all_bssids = get_all_bssids(training_data)
+    current_vector = create_feature_vector(current_scan, all_bssids)
+    
+    distances = []
+    for entry in training_data:
+        train_vector = create_feature_vector(entry['scan'], all_bssids)
+        dist = euclidean(current_vector, train_vector)
+        distances.append((dist, entry['location']))
+    
+    # Find k-nearest neighbors (k=3)
+    k = 3
+    distances.sort()
+    neighbors = distances[:k]
+    
+    # Majority vote
+    votes = defaultdict(int)
+    for d, loc in neighbors:
+        votes[loc] += 1
+    
+    predicted_location = max(votes, key=votes.get)
+    return jsonify({'location': predicted_location})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+</file>
+
+<file path="esp/esp.ino">
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+// Replace these with your network credentials
+const char* ssid     = "WE_FD1620";
+const char* password = "24031401";
+
+// Replace with your server's address and port
+const char* serverName = "http://192.168.1.202:5000/data";
+
+void setup() {
+  Serial.begin(115200);
+  // Connect to WiFi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi!");
+}
+
+void loop() {
+  // Perform a WiFi scan
+  int n = WiFi.scanNetworks();
+  
+  // Create a JSON document. Increase capacity if you scan many networks.
+  StaticJsonDocument<1024> doc;
+  doc["scan_count"] = n;
+  JsonArray networks = doc.createNestedArray("networks");
+
+  for (int i = 0; i < n; i++) {
+    JsonObject net = networks.createNestedObject();
+    net["ssid"] = WiFi.SSID(i);
+    net["rssi"] = WiFi.RSSI(i);
+    net["bssid"] = WiFi.BSSIDstr(i);
+  }
+  
+  // Serialize JSON to a string
+  String jsonData;
+  serializeJson(doc, jsonData);
+
+  // Send the data over HTTP POST if WiFi is connected
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverName);
+    http.addHeader("Content-Type", "application/json");
+
+    int httpResponseCode = http.POST(jsonData);
+    Serial.print("json data: ");
+    Serial.println(jsonData);
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.print("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+      Serial.print("Response: ");
+      Serial.println(response);
+    } else {
+      Serial.print("Error on sending POST: ");
+      Serial.println(httpResponseCode);
+    }
+    http.end();
+  }
+  
+  delay(200);
+}
+</file>
+
+<file path="esp/fixed/fixed.ino">
+#include <WiFi.h>
+// #include <ESP8266WiFi.h>
+
+#define LED 2
+#define LEDRED 4
+
+const char* ssid = "tower_4";  // Unique SSID for each ESP32
+const char* password = "rawan892003";
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.softAP(ssid, password);
+  Serial.println("Access Point Started");
+  Serial.print("SSID: ");
+  Serial.println(ssid);
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.softAPIP());
+  pinMode(LED, OUTPUT);
+  pinMode(LEDRED, OUTPUT);
+
+}
+
+void loop() {
+
+  digitalWrite(LEDRED, HIGH);
+  digitalWrite(LED, LOW);
+
+  delay(2000);
+  digitalWrite(LEDRED, LOW);
+  digitalWrite(LED, HIGH);
+
+  delay(2000);
+  // Keep the AP running
+}
+</file>
+
+<file path="esp/mobile/mobile.ino">
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266HTTPClient.h>  // Correct include for ESP8266
+#include <ArduinoJson.h>
+
+const char* ssid = "TP-Link_C2A8";  // Replace with your Wi-Fi SSID
+const char* password = "07870163";  // Replace with your Wi-Fi password
+const char* serverUrl = "http://192.168.0.107:5000/train";  // Replace with your server URL
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    int scanResult = WiFi.scanNetworks();
+
+    if (scanResult > 0) {
+      DynamicJsonDocument scanData(2048);  // Increased size for scan data
+      for (int i = 0; i < scanResult; ++i) {
+        String ssid = WiFi.SSID(i);
+        if (ssid.startsWith("tower_")) {  // Filter by SSID
+          scanData[ssid] = WiFi.RSSI(i);  // Use SSID as the key
+        }
+      }
+
+      WiFiClient client;  // Create a WiFiClient object
+      HTTPClient http;
+      http.begin(client, serverUrl);  // Use the new API with WiFiClient
+      http.addHeader("Content-Type", "application/json");
+      http.setTimeout(5000);  // Set timeout to 5 seconds
+
+      String location = "x4y4";  // Change this for each checkpoint
+      DynamicJsonDocument payload(1024);  // Increased size for payload
+      payload["location"] = location;
+      payload["scan_data"] = scanData;
+
+      String jsonPayload;
+      serializeJson(payload, jsonPayload);
+
+      int httpCode = http.POST(jsonPayload);
+
+      if (httpCode == HTTP_CODE_OK) {
+        String response = http.getString();
+        Serial.println("Server response: " + response);
+      } else {
+        Serial.println("HTTP Error: " + String(httpCode));
+      }
+      http.end();
+    } else {
+      Serial.println("No networks found.");
+    }
+    WiFi.scanDelete();
+    delay(5000);  // Wait 5 seconds before next scan
+  } else {
+    Serial.println("Wi-Fi disconnected. Reconnecting...");
+    WiFi.begin(ssid, password);
+    delay(1000);
+  }
+}
+</file>
+
+<file path="esp/testing/testing.ino">
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+#include <ArduinoJson.h>
+
+const char* ssid = "TP-Link_C2A8";  // Replace with your Wi-Fi SSID
+const char* password = "07870163";  // Replace with your Wi-Fi password
+const char* serverUrl = "http://192.168.0.107:5000/locate";  // Replace with your server URL
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    int scanResult = WiFi.scanNetworks();  // Scan for networks
+
+    if (scanResult > 0) {
+      DynamicJsonDocument scanData(2048);  // Increased size for scan data
+      for (int i = 0; i < scanResult; ++i) {
+        String ssid = WiFi.SSID(i);
+        if (ssid.startsWith("tower_")) {  // Filter your ESP32 APs
+          scanData[ssid] = WiFi.RSSI(i);  // Store SSID and RSSI
+        }
+      }
+
+      WiFiClient client;  // Create a WiFiClient object
+      HTTPClient http;
+      http.begin(client, serverUrl);  // Use the new API with WiFiClient
+      http.addHeader("Content-Type", "application/json");
+
+      String jsonPayload;
+      serializeJson(scanData, jsonPayload);
+
+      Serial.println("\nSending scan data:");
+      serializeJsonPretty(scanData, Serial);  // Print formatted JSON
+      Serial.println();
+
+      int httpCode = http.POST(jsonPayload);
+
+      if (httpCode == HTTP_CODE_OK) {
+        String response = http.getString();
+        Serial.print("Predicted Location: ");
+        Serial.println(response);
+      } else {
+        Serial.print("HTTP Error: ");
+        Serial.println(httpCode);
+        Serial.print("Response: ");
+        Serial.println(http.getString());  // Print server response
+      }
+      http.end();
+    } else {
+      Serial.println("No networks found!");
+    }
+    WiFi.scanDelete();
+    delay(5000);  // Wait 5 seconds between scans
+  }
+}
+</file>
+
+<file path="map.py">
+from flask import Flask, request, jsonify, render_template
+import random
+
+app = Flask(__name__)
+
+# Fixed ESP32 locations (manually set)
+fixed_esp32s = {
+    "tower_1": (0, 0),
+    "tower_2": (5, 0),
+    "tower_3": (2, 4),
+    "tower_4": (4, 3)
+}
+
+# Function to estimate mobile ESP32 location (Simple Weighted Average)
+def estimate_location(scan_data):
+    x, y, weight_sum = 0, 0, 0
+    for tower, rssi in scan_data.items():
+        if tower in fixed_esp32s:
+            weight = 100 + rssi  # Convert RSSI (-dB) to positive weight
+            weight_sum += weight
+            x += fixed_esp32s[tower][0] * weight
+            y += fixed_esp32s[tower][1] * weight
+    
+    if weight_sum == 0:
+        return None  # Avoid division by zero
+    
+    return (x / weight_sum, y / weight_sum)
+
+# API to receive scan data from ESP32
+@app.route('/locate', methods=['POST'])
+def locate():
+    data = request.json
+    scan_data = data.get("scan_data", {})
+    estimated_pos = estimate_location(scan_data)
+    print(f"Received scan data: {scan_data}, estimated position: {estimated_pos}")
+    if estimated_pos:
+        return jsonify({"x": estimated_pos[0], "y": estimated_pos[1]})
+    else:
+        return jsonify({"error": "No valid data"}), 400
+
+# Serve the front-end map
+@app.route('/')
+def home():
+    return render_template("map.html")
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+</file>
+
+<file path="server.py">
+from flask import Flask, request, jsonify
+import threading
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.neighbors import NearestNeighbors
+
+app = Flask(__name__)
+
+# Global variable to store the latest scan data
+latest_scan = None
+
+# Dummy fingerprint database for localization.
+fingerprints = [
+    {"x": 2, "y": 2, "rssi": {
+        "10:71:B3:FD:16:21": -50,
+        "C0:25:E9:52:38:F2": -60,
+        "80:7D:14:05:52:70": -80,
+        "20:08:89:97:80:20": -85
+    }},
+    {"x": 8, "y": 2, "rssi": {
+        "10:71:B3:FD:16:21": -65,
+        "C0:25:E9:52:38:F2": -55,
+        "80:7D:14:05:52:70": -90,
+        "20:08:89:97:80:20": -88
+    }},
+    {"x": 2, "y": 8, "rssi": {
+        "10:71:B3:FD:16:21": -70,
+        "C0:25:E9:52:38:F2": -75,
+        "80:7D:14:05:52:70": -50,
+        "20:08:89:97:80:20": -60
+    }},
+    {"x": 8, "y": 8, "rssi": {
+        "10:71:B3:FD:16:21": -80,
+        "C0:25:E9:52:38:F2": -78,
+        "80:7D:14:05:52:70": -60,
+        "20:08:89:97:80:20": -40
+    }}
+]
+
+# Automatically generate a list of known BSSIDs from the fingerprint database.
+known_bssids = {bssid for fp in fingerprints for bssid in fp["rssi"]}
+
+@app.route('/data', methods=['POST'])
+def data():
+    global latest_scan
+    latest_scan = request.json
+    print("Received scan data:", latest_scan)
+    return jsonify({"status": "received"}), 200
+
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+# Start the Flask server in a separate thread.
+flask_thread = threading.Thread(target=run_flask, daemon=True)
+flask_thread.start()
+
+# Set up matplotlib for real-time plotting.
+plt.ion()
+fig, ax = plt.subplots()
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 10)
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_title('Estimated Car Position')
+
+# Static blue point at the specified position (3.53, 3.81)
+blue_point, = ax.plot([3.53], [3.81], 'bo', markersize=8)  # Blue circle at (3.53, 3.81)
+
+pos_plot, = ax.plot([], [], 'ro', markersize=10)  # Red dot for position
+
+def estimate_position_knn(measured, fingerprints, k=3):
+    """
+    Estimate position using k-NN by comparing measured RSSI values with fingerprint database.
+    """
+    # Prepare training data (features and positions)
+    X_train = []
+    y_train = []
+
+    for fp in fingerprints:
+        rssi_values = list(fp["rssi"].values())
+        X_train.append(rssi_values)
+        y_train.append([fp["x"], fp["y"]])
+
+    # Convert to numpy arrays
+    X_train = np.array(X_train)
+    y_train = np.array(y_train)
+
+    # Measure the RSSI values for known BSSIDs
+    measured_values = [measured.get(bssid, None) for bssid in known_bssids]
+    
+    # Remove None values (those BSSIDs not in the scan)
+    measured_values = [value for value in measured_values if value is not None]
+
+    if len(measured_values) == 0:
+        return None  # No common BSSIDs, cannot estimate position
+
+    # Find the k-nearest neighbors
+    nbrs = NearestNeighbors(n_neighbors=k, algorithm='auto').fit(X_train)
+    distances, indices = nbrs.kneighbors([measured_values])
+
+    # Compute the weighted average of the k-nearest neighbors
+    weighted_position = np.zeros(2)
+    total_distance = 0
+
+    for i, idx in enumerate(indices[0]):
+        distance = distances[0][i]
+        weighted_position += y_train[idx] / (distance + 1e-6)  # Avoid division by zero
+        total_distance += 1 / (distance + 1e-6)
+
+    weighted_position /= total_distance
+    return tuple(weighted_position)
+
+print("Server is running and waiting for ESP32 data...")
+
+# Main loop for visualization.
+while True:
+    if latest_scan:
+        measured = {net["bssid"]: net["rssi"] for net in latest_scan.get("networks", []) if net["bssid"] in known_bssids}
+
+        print("Measured:", measured)
+        pos = estimate_position_knn(measured, fingerprints)
+        print("Estimated Position:", pos)
+
+        if pos:
+            x, y = pos
+            pos_plot.set_data([x], [y])  # Convert to lists
+            plt.draw()
+            fig.canvas.flush_events()  # Ensures real-time updates
+        
+        latest_scan = None  # Clear data after processing
+    
+    plt.pause(0.5)  # Allow smooth updates
+</file>
+
+<file path="templates/index.html">
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ESP32 Localization</title>
+  <!-- Include Plotly from CDN -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <h1>ESP32 Localization Dashboard</h1>
+  <div id="plot" style="width:600px;height:600px;"></div>
+  
+  <script>
+    function fetchData() {
+      fetch('/data')
+      .then(response => response.json())
+      .then(data => {
+        const fixedNodes = data.fixed_nodes;
+        const mobile = data.mobile_node;
+        
+        let fixedX = [];
+        let fixedY = [];
+        let fixedLabels = [];
+        
+        for (const node in fixedNodes) {
+          fixedX.push(fixedNodes[node].x);
+          fixedY.push(fixedNodes[node].y);
+          fixedLabels.push(node);
+        }
+        
+        // Mobile node: only add if data is available.
+        let mobileX = (mobile.x !== null) ? [mobile.x] : [];
+        let mobileY = (mobile.y !== null) ? [mobile.y] : [];
+        
+        // Fixed nodes trace (blue dots with labels)
+        const fixedTrace = {
+          x: fixedX,
+          y: fixedY,
+          mode: 'markers+text',
+          type: 'scatter',
+          marker: { color: 'blue', size: 12 },
+          text: fixedLabels,
+          name: 'Fixed Nodes'
+        };
+        
+        // Mobile node trace (red dot)
+        const mobileTrace = {
+          x: mobileX,
+          y: mobileY,
+          mode: 'markers',
+          type: 'scatter',
+          marker: { color: 'red', size: 12 },
+          name: 'Mobile Node'
+        };
+        
+        const layout = {
+          title: 'ESP32 Localization',
+          xaxis: { title: 'X coordinate' },
+          yaxis: { title: 'Y coordinate' },
+          width: 600,
+          height: 600
+        };
+        
+        Plotly.newPlot('plot', [fixedTrace, mobileTrace], layout);
+      });
+    }
+    
+    // Refresh the plot every 5 seconds.
+    setInterval(fetchData, 5000);
+    fetchData();
+  </script>
+</body>
+</html>
+</file>
+
+<file path="templates/map.html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP Localization Grid</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-template-rows: repeat(7, 50px);
+            gap: 5px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .grid-item {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid black;
+            background-color: lightgray;
+            font-size: 14px;
+        }
+        .fixed-esp { background-color: blue; color: white; }
+        .mobile-esp { background-color: red; color: white; }
+    </style>
+</head>
+<body>
+    <h2>ESP32 Localization Grid</h2>
+    <div class="grid-container" id="grid"></div>
+    
+    <script>
+        const gridSize = 7; // 7x7 for a 6x6 grid (0-6 index)
+        const fixedESPPositions = { 
+            "x0y6": true, "x6y6": true, "x6y0": true, "x0y0": true 
+        }; // Fixed ESP positions
+
+        function createGrid() {
+            const grid = document.getElementById("grid");
+            grid.innerHTML = "";
+
+            // Iterate from top (6) to bottom (0)
+            for (let y = gridSize - 1; y >= 0; y--) {
+                for (let x = 0; x < gridSize; x++) {
+                    let cell = document.createElement("div");
+                    cell.classList.add("grid-item");
+                    cell.id = `x${x}y${y}`;
+
+                    if (fixedESPPositions[cell.id]) {
+                        cell.classList.add("fixed-esp");
+                        cell.innerText = "📡"; // Fixed ESP
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        async function updateMobileESP() {
+            try {
+                let response = await fetch("/locate", { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ /* Replace with real scan data */ }) 
+                });
+                let data = await response.json();
+                
+                if (data.location) {
+                    document.querySelectorAll(".mobile-esp").forEach(el => {
+                        el.classList.remove("mobile-esp");
+                        el.innerText = "";
+                    });
+
+                    let mobileESP = document.getElementById(data.location);
+                    if (mobileESP) {
+                        mobileESP.classList.add("mobile-esp");
+                        mobileESP.innerText = "📍"; // Mobile ESP
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching location:", error);
+            }
+        }
+        
+        createGrid();
+        setInterval(updateMobileESP, 2000);
+    </script>
+</body>
+</html>
+</file>
+
+<file path="test.py">
+import json
+import csv
+import os
+import time
+import requests
+import threading
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from flask import Flask, request, jsonify
+from collections import defaultdict
+from scipy.spatial.distance import euclidean
+
+global estimated_x, estimated_y
+estimated_x, estimated_y = None, None
+app = Flask(__name__)
+DATA_FILE = 'training_data.csv'
+SERVER_URL = 'http://127.0.0.1:5000/locate'  # Change if hosted elsewhere
+ESP_SCAN_URL = 'http://192.168.1.100/scan'  # Change to ESP IP
+
+def load_training_data():
+    data = []
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                data.append({
+                    'location': row['location'],
+                    'scan': json.loads(row['scan_data'])
+                })
+    return data
+
+def get_all_bssids(data):
+    bssids = set()
+    for entry in data:
+        bssids.update(entry['scan'].keys())
+    return sorted(bssids)
+
+def create_feature_vector(scan, all_bssids, default_rssi=-100):
+    return [scan.get(bssid, default_rssi) for bssid in all_bssids]
+
+@app.route('/train', methods=['POST'])
+def train():
+    data = request.json
+    location = data['location']
+    scan_data = data['scan_data']
+    
+    file_exists = os.path.exists(DATA_FILE)
+    with open(DATA_FILE, 'a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(['location', 'scan_data'])
+        writer.writerow([location, json.dumps(scan_data)])
+    
+    return jsonify({'status': 'success'})
+
+@app.route('/locate', methods=['POST'])
+def locate():
+    global estimated_x, estimated_y 
+    current_scan = request.json
+    training_data = load_training_data()
+    
+    if not training_data:
+        return jsonify({'error': 'No training data available'}), 400
+    
+    all_bssids = get_all_bssids(training_data)
+    current_vector = create_feature_vector(current_scan, all_bssids)
+    
+    distances = []
+    for entry in training_data:
+        train_vector = create_feature_vector(entry['scan'], all_bssids)
+        dist = euclidean(current_vector, train_vector)
+        distances.append((dist, entry['location']))
+    
+    # Find k-nearest neighbors (k=3)
+    k = 3
+    distances.sort()
+    neighbors = distances[:k]
+    
+    # Majority vote
+# Weighted average position estimation
+    weighted_x, weighted_y, total_weight = 0, 0, 0
+    for dist, loc in neighbors:
+        if dist == 0:
+            return jsonify({'location': loc})  # Exact match
+        x, y = location_map[loc]  # Get saved coordinates
+        weight = 1 / dist  # Inverse distance weighting
+        weighted_x += x * weight
+        weighted_y += y * weight
+        total_weight += weight
+
+    # Compute weighted average position
+    estimated_x = weighted_x / total_weight
+    estimated_y = weighted_y / total_weight
+
+    return jsonify({'location': f"Interpolated_{estimated_x:.2f}_{estimated_y:.2f}", 'x': estimated_x, 'y': estimated_y})
+
+    # return jsonify({'location': predicted_location})
+
+# Visualization Setup
+training_data = load_training_data()
+saved_locations = list(set(entry['location'] for entry in training_data))
+location_map = {loc: (i, len(saved_locations) - i) for i, loc in enumerate(saved_locations)}
+
+def get_current_location():
+    try:
+        esp_response = requests.get(ESP_SCAN_URL, timeout=2)
+        if esp_response.status_code == 200:
+            scan_data = esp_response.json()
+            response = requests.post(SERVER_URL, json={"scan_data": scan_data})
+            if response.status_code == 200:
+                return response.json().get('location')
+    except requests.exceptions.RequestException:
+        return None
+    return None
+
+def update_plot(frame):
+    global estimated_x, estimated_y 
+    ax.clear()
+    
+    # Plot saved locations (Blue)
+    for loc, (x, y) in location_map.items():
+        ax.scatter(x, y, color='blue', label='Saved Locations' if loc == saved_locations[0] else "")
+        ax.text(x, y, loc, fontsize=12, ha='right')
+
+    # Get current location from ESP
+    current_location = get_current_location()
+    print(f"ESP Reported Location: {current_location}")  # Debugging
+
+    if estimated_y or estimated_x:
+            x = estimated_x
+            y = estimated_x
+    else:
+        # Estimate position: find closest saved location
+        closest_loc = min(location_map.keys(), key=lambda loc: abs(int(loc) - int(current_location)))
+        x, y = location_map[closest_loc]
+        print(f"Estimated Position: {x}, {y} (Closest to {closest_loc})")
+
+    ax.scatter(x, y, color='red', label='Current Position')
+
+    ax.legend()
+    ax.set_title("Live Localization")
+    ax.set_xlabel("X Coordinate")
+    ax.set_ylabel("Y Coordinate")
+    ax.set_ylim(0, len(saved_locations))
+    ax.set_xlim(-1, len(saved_locations))
+
+
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+fig, ax = plt.subplots()
+ani = FuncAnimation(fig, update_plot, interval=2000)
+
+if __name__ == '__main__':
+    threading.Thread(target=run_flask, daemon=True).start()
+    plt.show()
+</file>
+
+<file path="training_data.csv">
+location,scan_data
+
+x1y1,"{""tower_3"": -62, ""tower_2"": -40, ""tower_4"": -61, ""tower_1"": -60}"
+x1y1,"{""tower_3"": -65, ""tower_1"": -56, ""tower_2"": -39, ""tower_4"": -59}"
+x1y1,"{""tower_1"": -57, ""tower_3"": -63, ""tower_2"": -55, ""tower_4"": -62}"
+x1y1,"{""tower_2"": -39, ""tower_4"": -60, ""tower_3"": -66, ""tower_1"": -55}"
+x1y1,"{""tower_1"": -56, ""tower_2"": -40, ""tower_4"": -63, ""tower_3"": -63}"
+x1y1,"{""tower_1"": -61, ""tower_2"": -40, ""tower_4"": -60, ""tower_3"": -63}"
+x1y1,"{""tower_2"": -40, ""tower_1"": -57, ""tower_4"": -63, ""tower_3"": -65}"
+x1y1,"{""tower_1"": -56, ""tower_3"": -64, ""tower_2"": -40, ""tower_4"": -61}"
+x1y1,"{""tower_2"": -49, ""tower_3"": -64, ""tower_1"": -60, ""tower_4"": -63}"
+x1y1,"{""tower_2"": -41, ""tower_1"": -57, ""tower_3"": -65, ""tower_4"": -63}"
+x1y1,"{""tower_1"": -58, ""tower_2"": -39, ""tower_3"": -64, ""tower_4"": -60}"
+x1y1,"{""tower_3"": -65, ""tower_1"": -62, ""tower_4"": -61, ""tower_2"": -40}"
+x1y1,"{""tower_2"": -40, ""tower_4"": -63, ""tower_1"": -60, ""tower_3"": -63}"
+x1y1,"{""tower_3"": -63, ""tower_2"": -43, ""tower_1"": -60, ""tower_4"": -65}"
+x1y1,"{""tower_2"": -40, ""tower_4"": -62, ""tower_3"": -64, ""tower_1"": -56}"
+x1y1,"{""tower_3"": -62, ""tower_2"": -39, ""tower_1"": -58, ""tower_4"": -60}"
+x1y1,"{""tower_2"": -40, ""tower_4"": -60, ""tower_1"": -57, ""tower_3"": -63}"
+x1y1,"{""tower_1"": -57, ""tower_2"": -41, ""tower_4"": -60, ""tower_3"": -63}"
+x1y1,"{""tower_1"": -55, ""tower_4"": -60, ""tower_2"": -52, ""tower_3"": -63}"
+x1y1,"{""tower_1"": -60, ""tower_2"": -58, ""tower_3"": -65, ""tower_4"": -61}"
+x1y1,"{""tower_4"": -59, ""tower_2"": -40, ""tower_1"": -59, ""tower_3"": -65}"
+x1y1,"{""tower_4"": -63, ""tower_2"": -42, ""tower_1"": -58, ""tower_3"": -66}"
+x1y1,"{""tower_2"": -41, ""tower_3"": -65, ""tower_1"": -58, ""tower_4"": -60}"
+x1y1,"{""tower_3"": -64, ""tower_4"": -61, ""tower_1"": -59, ""tower_2"": -55}"
+x1y1,"{""tower_1"": -60, ""tower_2"": -42, ""tower_4"": -63, ""tower_3"": -68}"
+x1y1,"{""tower_1"": -60, ""tower_4"": -59, ""tower_3"": -64, ""tower_2"": -38}"
+x1y1,"{""tower_2"": -40, ""tower_3"": -61, ""tower_1"": -56, ""tower_4"": -59}"
+x1y1,"{""tower_2"": -43, ""tower_4"": -64, ""tower_3"": -65, ""tower_1"": -56}"
+x1y1,"{""tower_1"": -59, ""tower_2"": -43, ""tower_3"": -67, ""tower_4"": -64}"
+x1y1,"{""tower_1"": -59, ""tower_3"": -65, ""tower_2"": -43, ""tower_4"": -63}"
+x1y1,"{""tower_4"": -64, ""tower_3"": -68, ""tower_1"": -61, ""tower_2"": -58}"
+x1y1,"{""tower_2"": -42, ""tower_4"": -61, ""tower_1"": -64, ""tower_3"": -69}"
+x1y1,"{""tower_2"": -56, ""tower_1"": -57, ""tower_3"": -65, ""tower_4"": -63}"
+
+x2y2,"{""tower_2"": -52, ""tower_1"": -51, ""tower_3"": -61, ""tower_4"": -57}"
+x2y2,"{""tower_4"": -52, ""tower_1"": -48, ""tower_2"": -54, ""tower_3"": -62}"
+x2y2,"{""tower_4"": -63, ""tower_1"": -44, ""tower_2"": -63, ""tower_3"": -66}"
+x2y2,"{""tower_2"": -60, ""tower_1"": -51, ""tower_3"": -65, ""tower_4"": -66}"
+x2y2,"{""tower_3"": -64, ""tower_2"": -59, ""tower_1"": -43, ""tower_4"": -62}"
+x2y2,"{""tower_1"": -43, ""tower_2"": -53, ""tower_3"": -64, ""tower_4"": -62}"
+x2y2,"{""tower_4"": -63, ""tower_1"": -45, ""tower_2"": -62, ""tower_3"": -67}"
+x2y2,"{""tower_2"": -58, ""tower_1"": -45, ""tower_4"": -62, ""tower_3"": -67}"
+x2y2,"{""tower_1"": -45, ""tower_2"": -58, ""tower_3"": -68, ""tower_4"": -62}"
+x2y2,"{""tower_1"": -52, ""tower_2"": -59, ""tower_4"": -63, ""tower_3"": -63}"
+x2y2,"{""tower_4"": -65, ""tower_1"": -46, ""tower_3"": -68, ""tower_2"": -61}"
+x2y2,"{""tower_3"": -68, ""tower_2"": -59, ""tower_1"": -45, ""tower_4"": -64}"
+x2y2,"{""tower_4"": -64, ""tower_1"": -45, ""tower_3"": -68, ""tower_2"": -59}"
+x2y2,"{""tower_3"": -65, ""tower_4"": -60, ""tower_1"": -43, ""tower_2"": -57}"
+x2y2,"{""tower_1"": -46, ""tower_3"": -70, ""tower_4"": -66, ""tower_2"": -63}"
+x2y2,"{""tower_1"": -44, ""tower_4"": -63, ""tower_3"": -68, ""tower_2"": -59}"
+x2y2,"{""tower_3"": -66, ""tower_4"": -60, ""tower_1"": -43, ""tower_2"": -56}"
+x2y2,"{""tower_1"": -51, ""tower_2"": -59, ""tower_3"": -66, ""tower_4"": -62}"
+x2y2,"{""tower_4"": -59, ""tower_1"": -41, ""tower_2"": -54, ""tower_3"": -62}"
+x2y2,"{""tower_2"": -57, ""tower_1"": -49, ""tower_4"": -60, ""tower_3"": -65}"
+x2y2,"{""tower_4"": -62, ""tower_2"": -58, ""tower_1"": -45, ""tower_3"": -65}"
+x2y2,"{""tower_2"": -61, ""tower_4"": -62, ""tower_1"": -45, ""tower_3"": -67}"
+x2y2,"{""tower_2"": -57, ""tower_1"": -43, ""tower_3"": -64, ""tower_4"": -61}"
+x2y2,"{""tower_1"": -44, ""tower_2"": -57, ""tower_4"": -59, ""tower_3"": -65}"
+x2y2,"{""tower_1"": -48, ""tower_3"": -66, ""tower_2"": -58, ""tower_4"": -61}"
+x2y2,"{""tower_1"": -52, ""tower_4"": -62, ""tower_2"": -59, ""tower_3"": -69}"
+
+
+
+
+
+
+
+x3y3,"{""tower_3"": -51, ""tower_4"": -51, ""tower_1"": -65, ""tower_2"": -62}"
+x3y3,"{""tower_4"": -51, ""tower_3"": -47, ""tower_2"": -62, ""tower_1"": -63}"
+x3y3,"{""tower_3"": -52, ""tower_2"": -62, ""tower_4"": -45, ""tower_1"": -64}"
+x3y3,"{""tower_4"": -48, ""tower_1"": -68, ""tower_2"": -66, ""tower_3"": -56}"
+x3y3,"{""tower_4"": -51, ""tower_3"": -46, ""tower_1"": -65, ""tower_2"": -62}"
+x3y3,"{""tower_4"": -47, ""tower_1"": -69, ""tower_2"": -65, ""tower_3"": -54}"
+x3y3,"{""tower_3"": -53, ""tower_4"": -52, ""tower_1"": -65, ""tower_2"": -62}"
+x3y3,"{""tower_3"": -55, ""tower_4"": -53, ""tower_2"": -62, ""tower_1"": -65}"
+x3y3,"{""tower_4"": -56, ""tower_3"": -55, ""tower_2"": -66, ""tower_1"": -69}"
+x3y3,"{""tower_4"": -49, ""tower_1"": -68, ""tower_3"": -55, ""tower_2"": -65}"
+x3y3,"{""tower_4"": -35, ""tower_3"": -53, ""tower_2"": -62, ""tower_1"": -65}"
+x3y3,"{""tower_1"": -66, ""tower_2"": -65, ""tower_4"": -51, ""tower_3"": -53}"
+x3y3,"{""tower_4"": -53, ""tower_3"": -56, ""tower_2"": -65, ""tower_1"": -68}"
+x3y3,"{""tower_3"": -57, ""tower_4"": -55, ""tower_1"": -68, ""tower_2"": -65}"
+x3y3,"{""tower_1"": -73, ""tower_4"": -53, ""tower_3"": -54, ""tower_2"": -73}"
+x3y3,"{""tower_4"": -53, ""tower_3"": -53, ""tower_1"": -73, ""tower_2"": -64}"
+x3y3,"{""tower_2"": -65, ""tower_3"": -56, ""tower_4"": -54, ""tower_1"": -69}"
+x3y3,"{""tower_2"": -68, ""tower_4"": -50, ""tower_3"": -57, ""tower_1"": -70}"
+x3y3,"{""tower_4"": -57, ""tower_3"": -55, ""tower_2"": -65, ""tower_1"": -71}"
+x3y3,"{""tower_4"": -55, ""tower_2"": -68, ""tower_3"": -55, ""tower_1"": -71}"
+x3y3,"{""tower_3"": -55, ""tower_2"": -68, ""tower_4"": -54, ""tower_1"": -69}"
+x3y3,"{""tower_4"": -47, ""tower_2"": -69, ""tower_3"": -57, ""tower_1"": -67}"
+x3y3,"{""tower_4"": -55, ""tower_3"": -52, ""tower_2"": -70, ""tower_1"": -68}"
+x3y3,"{""tower_2"": -70, ""tower_3"": -56, ""tower_4"": -50, ""tower_1"": -68}"
+x3y3,"{""tower_2"": -64, ""tower_3"": -46, ""tower_1"": -65, ""tower_4"": -45}"
+x3y3,"{""tower_4"": -56, ""tower_3"": -56, ""tower_2"": -67, ""tower_1"": -66}"
+x3y3,"{""tower_4"": -50, ""tower_1"": -62, ""tower_3"": -46, ""tower_2"": -66}"
+x3y3,"{""tower_4"": -48, ""tower_1"": -62, ""tower_3"": -50, ""tower_2"": -65}"
+x3y3,"{""tower_3"": -54, ""tower_4"": -48, ""tower_2"": -63, ""tower_1"": -68}"
+x3y3,"{""tower_4"": -54, ""tower_3"": -57, ""tower_2"": -66, ""tower_1"": -69}"
+x3y3,"{""tower_3"": -55, ""tower_4"": -54, ""tower_1"": -68, ""tower_2"": -64}"
+x3y3,"{""tower_3"": -55, ""tower_4"": -53, ""tower_2"": -64, ""tower_1"": -68}"
+x3y3,"{""tower_1"": -68, ""tower_3"": -53, ""tower_4"": -55, ""tower_2"": -64}"
+x3y3,"{""tower_1"": -69, ""tower_4"": -46, ""tower_3"": -53, ""tower_2"": -65}"
+x3y3,"{""tower_1"": -67, ""tower_3"": -51, ""tower_4"": -51, ""tower_2"": -71}"
+x3y3,"{""tower_4"": -51, ""tower_3"": -49, ""tower_2"": -71, ""tower_1"": -69}"
+x3y3,"{""tower_3"": -56, ""tower_1"": -73, ""tower_4"": -51, ""tower_2"": -76}"
+x3y3,"{""tower_2"": -61, ""tower_4"": -42, ""tower_3"": -50, ""tower_1"": -65}"
+x3y3,"{""tower_4"": -51, ""tower_3"": -51, ""tower_2"": -60, ""tower_1"": -64}"
+
+
+
+
+x4y4,"{""tower_4"": -33, ""tower_2"": -54, ""tower_3"": -61, ""tower_1"": -66}"
+x4y4,"{""tower_4"": -32, ""tower_2"": -59, ""tower_3"": -56, ""tower_1"": -68}"
+x4y4,"{""tower_4"": -37, ""tower_1"": -72, ""tower_3"": -63, ""tower_2"": -63}"
+x4y4,"{""tower_4"": -38, ""tower_3"": -64, ""tower_1"": -76, ""tower_2"": -61}"
+x4y4,"{""tower_4"": -37, ""tower_2"": -63, ""tower_1"": -80, ""tower_3"": -67}"
+x4y4,"{""tower_4"": -31, ""tower_1"": -69, ""tower_3"": -59, ""tower_2"": -60}"
+x4y4,"{""tower_3"": -58, ""tower_1"": -69, ""tower_4"": -36, ""tower_2"": -64}"
+x4y4,"{""tower_4"": -33, ""tower_2"": -63, ""tower_1"": -66, ""tower_3"": -61}"
+x4y4,"{""tower_3"": -58, ""tower_4"": -31, ""tower_1"": -60, ""tower_2"": -62}"
+x4y4,"{""tower_3"": -59, ""tower_4"": -34, ""tower_1"": -69, ""tower_2"": -62}"
+x4y4,"{""tower_4"": -37, ""tower_1"": -75, ""tower_2"": -61, ""tower_3"": -63}"
+x4y4,"{""tower_2"": -64, ""tower_1"": -67, ""tower_4"": -38, ""tower_3"": -65}"
+x4y4,"{""tower_3"": -69, ""tower_4"": -36, ""tower_1"": -72, ""tower_2"": -62}"
+x4y4,"{""tower_2"": -65, ""tower_3"": -63, ""tower_4"": -36, ""tower_1"": -69}"
+x4y4,"{""tower_1"": -68, ""tower_4"": -36, ""tower_3"": -65, ""tower_2"": -62}"
+x4y4,"{""tower_4"": -34, ""tower_1"": -62, ""tower_2"": -59, ""tower_3"": -61}"
+x4y4,"{""tower_3"": -61, ""tower_4"": -34, ""tower_2"": -62, ""tower_1"": -63}"
+x4y4,"{""tower_2"": -64, ""tower_4"": -37, ""tower_3"": -67, ""tower_1"": -64}"
+x4y4,"{""tower_4"": -37, ""tower_2"": -68, ""tower_3"": -66, ""tower_1"": -67}"
+x4y4,"{""tower_2"": -65, ""tower_4"": -37, ""tower_3"": -63, ""tower_1"": -75}"
+x4y4,"{""tower_4"": -36, ""tower_2"": -65, ""tower_3"": -64, ""tower_1"": -76}"
+x4y4,"{""tower_4"": -34, ""tower_2"": -61, ""tower_3"": -59, ""tower_1"": -66}"
+x4y4,"{""tower_4"": -34, ""tower_3"": -61, ""tower_2"": -64, ""tower_1"": -62}"
+x4y4,"{""tower_4"": -34, ""tower_3"": -64, ""tower_1"": -68, ""tower_2"": -65}"
+x4y4,"{""tower_4"": -34, ""tower_2"": -66, ""tower_1"": -67, ""tower_3"": -66}"
+x4y4,"{""tower_4"": -36, ""tower_3"": -64, ""tower_1"": -63, ""tower_2"": -67}"
+x4y4,"{""tower_3"": -63, ""tower_4"": -37, ""tower_1"": -68, ""tower_2"": -60}"
+x4y4,"{""tower_4"": -36, ""tower_2"": -61, ""tower_3"": -63, ""tower_1"": -70}"
+x4y4,"{""tower_2"": -62, ""tower_1"": -68, ""tower_4"": -54, ""tower_3"": -64}"
+x4y4,"{""tower_4"": -34, ""tower_3"": -62, ""tower_2"": -60, ""tower_1"": -67}"
+x4y4,"{""tower_4"": -38, ""tower_3"": -62, ""tower_2"": -57, ""tower_1"": -65}"
+x4y4,"{""tower_4"": -33, ""tower_2"": -63, ""tower_3"": -62, ""tower_1"": -68}"
+x4y4,"{""tower_1"": -69, ""tower_4"": -38, ""tower_3"": -68, ""tower_2"": -67}"
+x4y4,"{""tower_4"": -32, ""tower_2"": -59, ""tower_1"": -69, ""tower_3"": -59}"
+x4y4,"{""tower_3"": -61, ""tower_2"": -58, ""tower_4"": -33, ""tower_1"": -71}"
+x4y4,"{""tower_4"": -37, ""tower_2"": -68, ""tower_3"": -63, ""tower_1"": -70}"
+x4y4,"{""tower_4"": -34, ""tower_1"": -66, ""tower_2"": -62, ""tower_3"": -63}"
+x4y4,"{""tower_4"": -32, ""tower_2"": -58, ""tower_1"": -66, ""tower_3"": -60}"
+x4y4,"{""tower_4"": -37, ""tower_3"": -65, ""tower_2"": -68, ""tower_1"": -73}"
+x4y4,"{""tower_4"": -33, ""tower_1"": -63, ""tower_2"": -68, ""tower_3"": -61}"
+x4y4,"{""tower_4"": -33, ""tower_1"": -65, ""tower_3"": -60, ""tower_2"": -61}"
+x4y4,"{""tower_2"": -73, ""tower_4"": -36, ""tower_3"": -64, ""tower_1"": -75}"
+x4y4,"{""tower_3"": -61, ""tower_4"": -33, ""tower_1"": -67, ""tower_2"": -62}"
+x4y4,"{""tower_4"": -34, ""tower_1"": -66, ""tower_3"": -63, ""tower_2"": -60}"
+x4y4,"{""tower_1"": -74, ""tower_4"": -33, ""tower_3"": -63, ""tower_2"": -66}"
+x4y4,"{""tower_4"": -37, ""tower_2"": -70, ""tower_1"": -73, ""tower_3"": -65}"
+x4y4,"{""tower_1"": -71, ""tower_4"": -32, ""tower_3"": -64, ""tower_2"": -69}"
+x4y4,"{""tower_4"": -35, ""tower_2"": -68, ""tower_3"": -64, ""tower_1"": -79}"
+x4y4,"{""tower_2"": -63, ""tower_4"": -32, ""tower_3"": -60, ""tower_1"": -72}"
+x4y4,"{""tower_4"": -33, ""tower_2"": -63, ""tower_3"": -61, ""tower_1"": -74}"
+x4y4,"{""tower_3"": -60, ""tower_4"": -33, ""tower_2"": -61, ""tower_1"": -73}"
+x4y4,"{""tower_3"": -60, ""tower_4"": -31, ""tower_1"": -67, ""tower_2"": -66}"
+x4y4,"{""tower_3"": -64, ""tower_4"": -35, ""tower_1"": -68, ""tower_2"": -69}"
+x4y4,"{""tower_4"": -32, ""tower_3"": -63, ""tower_2"": -64, ""tower_1"": -65}"
+x4y4,"{""tower_4"": -32, ""tower_1"": -65, ""tower_2"": -67, ""tower_3"": -63}"
+</file>
+
+</files>
