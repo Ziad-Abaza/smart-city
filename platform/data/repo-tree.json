@@ -1,0 +1,294 @@
+{
+  "name": "smart-city-web",
+  "type": "directory",
+  "children": [
+    {
+      "name": "Code",
+      "type": "directory",
+      "children": [
+        {
+          "name": "charging area.xml",
+          "type": "file",
+          "size": 97009,
+          "extension": ".xml"
+        },
+        {
+          "name": "chatbot rag system assistant.xml",
+          "type": "file",
+          "size": 317952,
+          "extension": ".xml"
+        },
+        {
+          "name": "Indoor Localization.xml",
+          "type": "file",
+          "size": 45528,
+          "extension": ".xml"
+        },
+        {
+          "name": "parking.xml",
+          "type": "file",
+          "size": 19402,
+          "extension": ".xml"
+        },
+        {
+          "name": "smart car.xml",
+          "type": "file",
+          "size": 413450,
+          "extension": ".xml"
+        },
+        {
+          "name": "smart home.xml",
+          "type": "file",
+          "size": 1638544,
+          "extension": ".xml"
+        }
+      ]
+    },
+    {
+      "name": "Data",
+      "type": "directory",
+      "children": [
+        {
+          "name": "charging-area.md",
+          "type": "file",
+          "size": 10424,
+          "extension": ".md"
+        },
+        {
+          "name": "chatbot.md",
+          "type": "file",
+          "size": 15483,
+          "extension": ".md"
+        },
+        {
+          "name": "design.md",
+          "type": "file",
+          "size": 4985,
+          "extension": ".md"
+        },
+        {
+          "name": "Indoor-Localization.md",
+          "type": "file",
+          "size": 13246,
+          "extension": ".md"
+        },
+        {
+          "name": "parking.md",
+          "type": "file",
+          "size": 10703,
+          "extension": ".md"
+        },
+        {
+          "name": "smart-car.md",
+          "type": "file",
+          "size": 14792,
+          "extension": ".md"
+        },
+        {
+          "name": "smart-home.md",
+          "type": "file",
+          "size": 15013,
+          "extension": ".md"
+        },
+        {
+          "name": "team.xlsx",
+          "type": "file",
+          "size": 10920,
+          "extension": ".xlsx"
+        },
+        {
+          "name": "web-platform.md",
+          "type": "file",
+          "size": 16149,
+          "extension": ".md"
+        }
+      ]
+    },
+    {
+      "name": "3D",
+      "type": "directory",
+      "children": [
+        {
+          "name": "charging-area",
+          "type": "directory",
+          "children": [
+            {
+              "name": "charging-area.gltf",
+              "type": "file",
+              "size": 2732,
+              "extension": ".gltf"
+            },
+            {
+              "name": "data.bin",
+              "type": "file",
+              "size": 28140,
+              "extension": ".bin"
+            },
+            {
+              "name": "polished beech.jpg",
+              "type": "file",
+              "size": 796717,
+              "extension": ".jpg"
+            }
+          ]
+        },
+        {
+          "name": "smart-home",
+          "type": "directory",
+          "children": [
+            {
+              "name": "data.bin",
+              "type": "file",
+              "size": 13608,
+              "extension": ".bin"
+            },
+            {
+              "name": "polished oak.jpg",
+              "type": "file",
+              "size": 201995,
+              "extension": ".jpg"
+            },
+            {
+              "name": "smart-home.gltf",
+              "type": "file",
+              "size": 4986,
+              "extension": ".gltf"
+            }
+          ]
+        },
+        {
+          "name": "3D_Projects_Viewer.html",
+          "type": "file",
+          "size": 6098,
+          "extension": ".html"
+        }
+      ]
+    },
+    {
+      "name": "images",
+      "type": "directory",
+      "children": [
+        {
+          "name": "charging-area-2.png",
+          "type": "file",
+          "size": 124883,
+          "extension": ".png"
+        },
+        {
+          "name": "charging-area.jpg",
+          "type": "file",
+          "size": 79192,
+          "extension": ".jpg"
+        },
+        {
+          "name": "chatbot.png",
+          "type": "file",
+          "size": 1094668,
+          "extension": ".png"
+        },
+        {
+          "name": "dr.El-Gohary.jpg",
+          "type": "file",
+          "size": 4351278,
+          "extension": ".jpg"
+        },
+        {
+          "name": "dr.osama(1).jpg",
+          "type": "file",
+          "size": 14132525,
+          "extension": ".jpg"
+        },
+        {
+          "name": "dr.osama(2).jpg",
+          "type": "file",
+          "size": 277171,
+          "extension": ".jpg"
+        },
+        {
+          "name": "dr.osama(3).jpg",
+          "type": "file",
+          "size": 298194,
+          "extension": ".jpg"
+        },
+        {
+          "name": "eng.fayoumi(1).jpg",
+          "type": "file",
+          "size": 251607,
+          "extension": ".jpg"
+        },
+        {
+          "name": "eng.fayoumi(1).png",
+          "type": "file",
+          "size": 5624533,
+          "extension": ".png"
+        },
+        {
+          "name": "eng.fayoumi(2).png",
+          "type": "file",
+          "size": 5614811,
+          "extension": ".png"
+        },
+        {
+          "name": "indoor-localization.png",
+          "type": "file",
+          "size": 21410,
+          "extension": ".png"
+        },
+        {
+          "name": "map.json",
+          "type": "file",
+          "size": 6036,
+          "extension": ".json"
+        },
+        {
+          "name": "parking.jpg",
+          "type": "file",
+          "size": 3399705,
+          "extension": ".jpg"
+        },
+        {
+          "name": "simulator.jpg",
+          "type": "file",
+          "size": 34464,
+          "extension": ".jpg"
+        },
+        {
+          "name": "smart-car.png",
+          "type": "file",
+          "size": 6080681,
+          "extension": ".png"
+        },
+        {
+          "name": "smart-city-poster.jpg",
+          "type": "file",
+          "size": 449525,
+          "extension": ".jpg"
+        },
+        {
+          "name": "smart-home-face-reg.png",
+          "type": "file",
+          "size": 5281107,
+          "extension": ".png"
+        },
+        {
+          "name": "smart-home-voice-assistant-listining.jpeg",
+          "type": "file",
+          "size": 164032,
+          "extension": ".jpeg"
+        },
+        {
+          "name": "smart-home-voice-assistant-speking.jpeg",
+          "type": "file",
+          "size": 145748,
+          "extension": ".jpeg"
+        },
+        {
+          "name": "smart-home.jpg",
+          "type": "file",
+          "size": 110106,
+          "extension": ".jpg"
+        }
+      ]
+    }
+  ]
+}
